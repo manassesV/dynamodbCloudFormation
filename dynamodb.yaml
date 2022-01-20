@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: 'Project DynamoDB'
+Parameters:
+   BellingMode:
+      Description: Specify how you are charged for read and write thriughput and how you manage capacity
+      Type: String
+      AllowedValues: [PROVISIONED, PAY_PER_REQUEST]
+      Default: PROVISIONED
+   TableName:
+      Description: Define table name of tabke dynamodb
+      Type: String
+   ContributorInsightsSpecification:
+      Description: The settings used to enable or disable CloudWatch Contributor Insights
+      Type: String
+      Default: false
+      AllowedValues: [true, false]
+   GlobalSecondaryIndexName:
+      Description: Represents the properties of a global secondary index
+      Type: String
+      MinLength: 3
+      MaxLength: 255
+      AllowedPattern: '[a-zA-Z0-9_.-]+'
+   LocalSecondaryIndexName:
+      Description: Represents the properties of a local secondary index. A local secondary index can only be created when its parent table is created
+      Type: String
+      MinLength: 3
+      MaxLength: 255
+      AllowedPattern: '[a-zA-Z0-9_.-]+'
+   PointInTimeRecoverySpecification: 
+      Description: The settings used to enable point in time recovery
+      Type: String
+      Default: false
+      AllowedValues: [true, false]
+   ReadCapacityUnits:
+      Description: Throughput for the specified table, which consists of values for ReadCapacityUnits
+      Type: String
+      Default: 1
+      AllowedPattern: '[0-9]+'
+   WriteCapacityUnits: 
+      Description: Throughput for the specified table, which consists of values for WriteCapacityUnits
+      Type: String
+      Default: 1
+      AllowedPattern: '[0-9]+'
+   TableClass:
+      Description: The table class of the new table. Valid values are STANDARD and STANDARD_INFREQUENT_ACCESS.
+      Type: String
+      Default: STANDARD
+      AllowedValues: [STANDARD, STANDARD_INFREQUENT_ACCESS]
+Resources:
+   DynamoTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Delete 
+      Properties:
+         AttributeDefinitions:
+           - AttributeName: id
+             AttributeType: S
+           - AttributeName: status
+             AttributeType: S
+           - AttributeName: endingAt
+             AttributeType: S
+         BellingMode: !Ref 'BellingMode'
+         ContributorInsightsSpecification: 
+             Enabled: !Ref 'ContributorInsightsSpecification'
+         GlobalSecondaryIndexes:
+           - IndexName: !Ref 'GlobalSecondaryIndexName'
+             KeySchema: 
+               - AttributeName: status
+                 KeyType: HASH
+               - AttributeName: endingAt
+                 KeyType: RANGE
+             Projection:
+                 ProjectionType: ALL
+         KeySchema:
+           - AttributeName: status
+             KeyType: HASH
+         LocalSecondaryIndexes:
+            - IndexName: !Ref 'LocalSecondaryIndexName'
+              KeySchema:
+                - AttributeName: status
+                  KeyType: HASH
+                - AttributeName: endingAt
+                  KeyType: RANGE
+              Projection:
+                  ProjectionType: ALL
+         PointInTimeRecoverySpecification: !Ref 'PointInTimeRecoverySpecification'
+         ProvisionedThroughput:
+             ReadCapacityUnits: !Ref 'ReadCapacityUnits'
+             WriteCapacityUnits: !Ref 'WriteCapacityUnits'
+         TableClass: !Ref 'TableClass'
+         TableName: !Ref 'TableName' 
+         Tags:
+            - Key: "Author"
+              Value: "Manasses"
+            - Key: "DynamoDB"
+              Value: "Create Table"
+         TimeToLiveSpecification:
+            - AttributeName: timetolive
+              Enabled: false
+
